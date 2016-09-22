@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import ConfigParser
+import configparser
 import logging
 import os
 import shutil
@@ -13,11 +13,11 @@ import uuid
 # Config stuff.
 config_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PlexComskip.conf')
 if not os.path.exists(config_file_path):
-  print 'Config file not found: %s' % config_file_path
-  print 'Make a copy of PlexConfig.conf.example named PlexConfig.conf, modify as necessary, and place in the same directory as this script.'
+  print ('Config file not found: %s') % config_file_path
+  print ('Make a copy of PlexConfig.conf.example named PlexConfig.conf, modify as necessary, and place in the same directory as this script.')
   sys.exit(1)
 
-config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
+config = configparser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
 config.read(config_file_path)
 
 COMSKIP_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'comskip-path')))
@@ -53,7 +53,7 @@ def sizeof_fmt(num, suffix='B'):
   return "%.1f%s%s" % (num, 'Y', suffix)
 
 if len(sys.argv) < 2:
-  print 'Usage: PlexComskip.py input-file.mkv'
+  print ('Usage: PlexComskip.py input-file.mkv')
   sys.exit(1)
 
 # Clean up after ourselves and exit.
@@ -64,7 +64,7 @@ def cleanup_and_exit(temp_dir, keep_temp=False):
     try:
       os.chdir(os.path.expanduser('~'))  # Get out of the temp dir before we nuke it (causes issues on NTFS)
       shutil.rmtree(temp_dir)
-    except Exception, e:
+    except Exception as e:
       logging.error('Problem whacking temp dir: %s' % temp_dir)
       logging.error(str(e))
 
@@ -96,7 +96,7 @@ try:
   video_basename = os.path.basename(video_path)
   video_name, video_ext = os.path.splitext(video_basename)
 
-except Exception, e:
+except Exception as e:
   logging.error('Something went wrong setting up temp paths and working files: %s' % e)
   sys.exit(0)
 
@@ -113,7 +113,7 @@ try:
   logging.info('[comskip] Command: %s' % cmd)
   subprocess.call(cmd)
 
-except Exception, e:
+except Exception as e:
   logging.error('Something went wrong during comskip analysis: %s' % e)
   cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
 
@@ -157,7 +157,7 @@ try:
       logging.info('[ffmpeg] Command: %s' % cmd)
       try:
         subprocess.call(cmd)
-      except Exception, e:
+      except Exception as e:
         logging.error('Exception running ffmpeg: %s' % e)
         cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
       
@@ -170,7 +170,7 @@ try:
         segment_files.append(segment_file_name)
         segment_list_file.write('file %s\n' % segment_file_name)
 
-except Exception, e:
+except Exception as e:
   logging.error('Something went wrong during splitting: %s' % e)
   cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
 
@@ -180,7 +180,7 @@ try:
   logging.info('[ffmpeg] Command: %s' % cmd)
   subprocess.call(cmd)
 
-except Exception, e:
+except Exception as e:
   logging.error('Something went wrong during concatenation: %s' % e)
   cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
 
@@ -199,6 +199,6 @@ try:
   else:
     logging.info('Output file size looked wonky (too big or too small); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
-except Exception, e:
+except Exception as e:
   logging.error('Something went wrong during sanity check: %s' % e)
   cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
